@@ -6,7 +6,23 @@
     <AssemblyName>csharp-mcp</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- NuGet Package -->
+    <PackageId>CSharpMcp</PackageId>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>csharp-mcp</ToolCommandName>
+    <Description>Roslyn-powered C# code analysis MCP server and CLI tool. Provides 18 tools for symbol lookup, refactoring, diagnostics, and code generation.</Description>
+    <Authors>Pavel Vasek</Authors>
+    <PackageTags>csharp;roslyn;mcp;code-analysis;refactoring;cli</PackageTags>
+    <PackageProjectUrl>https://github.com/pvasek/csharp-mcp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/pvasek/csharp-mcp</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
   <!-- <PropertyGroup>
     <RestorePackagesPath>../.nuget/</RestorePackagesPath>
   </PropertyGroup>

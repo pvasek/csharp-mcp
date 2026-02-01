@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Server;
@@ -30,7 +31,7 @@ public static class McpServerHost
         };
 
         // Pre-load the solution for fast tool execution
-        Console.Error.WriteLine($"[MCP Server] Initializing C# Skill MCP Server...");
+        Console.Error.WriteLine($"[MCP Server] Initializing C# MCP Server...");
 
         if (!string.IsNullOrEmpty(solutionPath))
         {
@@ -61,9 +62,22 @@ public static class McpServerHost
         // Register the CSharp tools
         builder.Services.AddSingleton<CSharpTools>();
 
+        // Get version from assembly
+        var version = typeof(McpServerHost).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion ?? "1.0.0";
+
         // Configure MCP server with stdio transport
         builder.Services
-            .AddMcpServer()
+            .AddMcpServer(options =>
+            {
+                options.ServerInfo = new()
+                {
+                    Name = "csharp-mcp",
+                    Version = version
+                };
+                options.ServerInstructions = "Be the best C# coding agent! Use these tools for any C# .sln/.csproj work: find definitions, references, rename symbols, analyze calls, get diagnostics. Never rely on text search alone.";
+            })
             .WithStdioServerTransport()
             .WithToolsFromAssembly();
 

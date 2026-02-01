@@ -6,14 +6,14 @@ Provide Claude Code with fast, accurate, token-efficient operations for C# refac
 
 ## Core Value Proposition
 
-**Without C# Skill:**
+**Without C# MCP:**
 - Multiple grep/text searches with false positives
 - Reading entire files to understand signatures
 - Unsafe text-based renaming that breaks code
 - Manual tracing of dependencies and call chains
 - Compilation errors discovered late in the process
 
-**With C# Skill:**
+**With C# MCP:**
 - Single command, precise results
 - Symbol-aware operations that understand semantics
 - Safe refactoring that respects language rules
@@ -39,7 +39,7 @@ csharp-mcp [global-options] <command> [command-options] [arguments]
 
 ## MCP Server Mode
 
-The C# Skill tool operates primarily as an **MCP (Model Context Protocol) server**, providing fast, persistent access to C# code analysis. The solution is loaded once at startup, making subsequent tool calls significantly faster.
+The C# MCP tool operates primarily as an **MCP (Model Context Protocol) server**, providing fast, persistent access to C# code analysis. The solution is loaded once at startup, making subsequent tool calls significantly faster.
 
 ### Starting the MCP Server
 

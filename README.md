@@ -5,6 +5,10 @@ A dual-mode tool for C# code analysis and refactoring using Roslyn APIs. Operate
 ## Installation
 
 ```bash
+# Install as global tool (after published to NuGet)
+dotnet tool install -g CSharpMcp
+
+# Or build from source
 git clone <repository-url>
 cd csharp-mcp
 dotnet build
@@ -107,3 +111,7 @@ csharp-mcp --solution MySolution.sln find-definition UserService --type class
 **Dependencies:** ModelContextProtocol (v0.7.0-preview.1), Microsoft.CodeAnalysis.CSharp.Workspaces (v5.0.0), Microsoft.Build.Locator (v1.8.1), System.CommandLine (v2.0.0-beta4)
 
 See [SPEC.md](SPEC.md) for full specification.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
