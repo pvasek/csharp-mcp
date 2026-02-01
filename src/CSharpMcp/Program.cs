@@ -66,15 +66,10 @@ class Program
             }
         }
 
-        // All args are options (start with - or --) → MCP Server mode
+        // If no known command is found, assume MCP Server mode
         // This handles cases like: --solution path/to/solution.sln
-        if (args.All(a => a.StartsWith("-")))
-        {
-            return ExecutionMode.McpServer;
-        }
-
-        // Default to CLI mode for backwards compatibility
-        return ExecutionMode.Cli;
+        // where the path doesn't start with - but is not a command
+        return ExecutionMode.McpServer;
     }
 
     private static async Task<int> RunMcpServerAsync(string[] args)
