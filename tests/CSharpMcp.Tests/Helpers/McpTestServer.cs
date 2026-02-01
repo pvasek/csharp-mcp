@@ -30,11 +30,15 @@ public class McpTestServer : IAsyncDisposable
     private async Task InitializeAsync()
     {
         // Get path to the built executable
-        // The test runs from bin/Debug/net10.0/, so we navigate to src/CSharpMcp/bin/Debug/net10.0/
+        // The test runs from bin/{Configuration}/net10.0/, so we navigate to src/CSharpMcp/bin/{Configuration}/net10.0/
+        // Extract configuration from the test's base directory to use the same configuration for the main executable
+        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        var configuration = baseDir.Contains(Path.Combine("bin", "Release")) ? "Release" : "Debug";
+
         var exePath = Path.GetFullPath(Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory,
+            baseDir,
             "..", "..", "..", "..", "..",
-            "src", "CSharpMcp", "bin", "Debug", "net10.0", "csharp-mcp"));
+            "src", "CSharpMcp", "bin", configuration, "net10.0", "csharp-mcp"));
 
         // On Windows, add .exe extension
         if (OperatingSystem.IsWindows())
