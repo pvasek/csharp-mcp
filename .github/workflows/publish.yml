@@ -4,8 +4,32 @@ on:
   release:
     types: [published]
 
+env:
+  DOTNET_VERSION: '10.0.x'
+  PROJECT_PATH: 'src/CSharpMcp/CSharpMcp.csproj'
+
 jobs:
-  publish:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
+  publish-nuget:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -16,23 +40,14 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Extract version from release tag
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.version.outputs.VERSION }}
-
-      - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal
-
       - name: Pack
-        run: dotnet pack src/CSharpMcp/CSharpMcp.csproj --configuration Release --no-build --output ./nupkg
+        run: dotnet pack ${{ env.PROJECT_PATH }} --configuration Release -p:Version=${{ steps.version.outputs.VERSION }} --output ./nupkg
 
       - name: NuGet login (trusted publishing)
         uses: nuget/login@v1
