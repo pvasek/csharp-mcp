@@ -51,9 +51,10 @@ jobs:
         run: dotnet pack ${{ env.PROJECT_PATH }} --configuration Release -p:Version=${{ steps.version.outputs.VERSION }} --output ./nupkg
 
       - name: NuGet login (trusted publishing)
+        id: nuget-login
         uses: nuget/login@v1
         with:
           user: pvasek
 
       - name: Push to NuGet
-        run: dotnet nuget push ./nupkg/*.nupkg --source nuget --skip-duplicate
+        run: dotnet nuget push ./nupkg/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ steps.nuget-login.outputs.api-key }} --skip-duplicate
