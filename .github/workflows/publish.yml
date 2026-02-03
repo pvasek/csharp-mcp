@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   DOTNET_VERSION: '10.0.x'
   PROJECT_PATH: 'src/CSharpMcp/CSharpMcp.csproj'
@@ -31,10 +35,6 @@ jobs:
   publish-nuget:
     needs: test
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-
     steps:
       - uses: actions/checkout@v4
 
@@ -50,11 +50,15 @@ jobs:
       - name: Pack
         run: dotnet pack ${{ env.PROJECT_PATH }} --configuration Release -p:Version=${{ steps.version.outputs.VERSION }} --output ./nupkg
 
-      - name: NuGet login (trusted publishing)
-        id: nuget-login
-        uses: nuget/login@v1
+      - name: NuGet Login
+        id: login
+        uses: NuGet/login@v1
         with:
           user: pvasek
 
       - name: Push to NuGet
-        run: dotnet nuget push ./nupkg/*.nupkg --source https://api.nuget.org/v3/index.json --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --skip-duplicate
+        run: |
+          dotnet nuget push "./nupkg/*.nupkg" \
+            --source https://api.nuget.org/v3/index.json \
+            --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            --skip-duplicate
