@@ -1,7 +1,7 @@
 namespace CSharpMcp.Core;
 
 /// <summary>
-/// Utility class for discovering .sln files in the current directory.
+/// Utility class for discovering .sln/.slnx files in the current directory.
 /// </summary>
 public static class SolutionDiscovery
 {
@@ -19,7 +19,7 @@ public static class SolutionDiscovery
             return null;
         }
 
-        var solutionFiles = Directory.GetFiles(directory, "*.sln", SearchOption.TopDirectoryOnly);
+        var solutionFiles = GetSolutionFiles(directory);
 
         if (solutionFiles.Length == 1)
         {
@@ -38,16 +38,21 @@ public static class SolutionDiscovery
         return null;
     }
 
+    private static string[] GetSolutionFiles(string directory) =>
+        Directory.GetFiles(directory, "*.sln", SearchOption.TopDirectoryOnly)
+            .Concat(Directory.GetFiles(directory, "*.slnx", SearchOption.TopDirectoryOnly))
+            .ToArray();
+
     /// <summary>
     /// Gets a descriptive message about what was found or not found during discovery.
     /// </summary>
     public static string GetDiscoveryMessage(string directory)
     {
-        var solutionFiles = Directory.GetFiles(directory, "*.sln", SearchOption.TopDirectoryOnly);
+        var solutionFiles = GetSolutionFiles(directory);
 
         if (solutionFiles.Length == 0)
         {
-            return $"No .sln files found in '{directory}'. " +
+            return $"No .sln or .slnx files found in '{directory}'. " +
                    "Please specify a solution file with --solution.";
         }
 
