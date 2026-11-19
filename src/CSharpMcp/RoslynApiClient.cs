@@ -31,12 +31,12 @@ public class RoslynApiClient : IAsyncDisposable
         // Subscribe to workspace failures for diagnostics
         _workspace.RegisterWorkspaceFailedHandler((args) =>
         {
-            Console.WriteLine($"[Workspace] Failed: {args.Diagnostic.Message}");
+            Console.Error.WriteLine($"[Workspace] Failed: {args.Diagnostic.Message}");
         });
 
-        Console.WriteLine($"[RoslynApi] Loading solution: {solutionPath}");
+        Console.Error.WriteLine($"[RoslynApi] Loading solution: {solutionPath}");
         _solution = await _workspace.OpenSolutionAsync(solutionPath);
-        Console.WriteLine($"[RoslynApi] Loaded {_solution.Projects.Count()} project(s)");
+        Console.Error.WriteLine($"[RoslynApi] Loaded {_solution.Projects.Count()} project(s)");
 
         return _solution;
     }
@@ -91,7 +91,7 @@ public class RoslynApiClient : IAsyncDisposable
     {
         EnsureSolutionLoaded();
 
-        Console.WriteLine($"[RoslynApi] Renaming '{symbol.Name}' to '{newName}'...");
+        Console.Error.WriteLine($"[RoslynApi] Renaming '{symbol.Name}' to '{newName}'...");
 
         // Use Roslyn's rename API with newer overload
         var renamedSolution = await Renamer.RenameSymbolAsync(
@@ -102,7 +102,7 @@ public class RoslynApiClient : IAsyncDisposable
             CancellationToken.None
         );
 
-        Console.WriteLine($"[RoslynApi] Rename complete");
+        Console.Error.WriteLine($"[RoslynApi] Rename complete");
         return renamedSolution;
     }
 
@@ -131,7 +131,7 @@ public class RoslynApiClient : IAsyncDisposable
 
         var changes = newSolution.GetChanges(_solution!);
 
-        Console.WriteLine($"[RoslynApi] Applying changes...");
+        Console.Error.WriteLine($"[RoslynApi] Applying changes...");
         var changedProjects = 0;
         var changedDocuments = 0;
 
@@ -153,7 +153,7 @@ public class RoslynApiClient : IAsyncDisposable
 
                 if (filePath == null) continue;
 
-                Console.WriteLine($"[RoslynApi]   Writing: {Path.GetFileName(filePath)}");
+                Console.Error.WriteLine($"[RoslynApi]   Writing: {Path.GetFileName(filePath)}");
                 await File.WriteAllTextAsync(filePath, newText.ToString());
             }
 
@@ -165,7 +165,7 @@ public class RoslynApiClient : IAsyncDisposable
                 var newText = await newDocument.GetTextAsync();
                 var filePath = newDocument.FilePath!;
 
-                Console.WriteLine($"[RoslynApi]   Creating: {Path.GetFileName(filePath)}");
+                Console.Error.WriteLine($"[RoslynApi]   Creating: {Path.GetFileName(filePath)}");
                 await File.WriteAllTextAsync(filePath, newText.ToString());
             }
 
@@ -179,12 +179,12 @@ public class RoslynApiClient : IAsyncDisposable
                 var filePath = oldDocument.FilePath;
                 if (filePath == null) continue;
 
-                Console.WriteLine($"[RoslynApi]   Deleting: {Path.GetFileName(filePath)}");
+                Console.Error.WriteLine($"[RoslynApi]   Deleting: {Path.GetFileName(filePath)}");
                 File.Delete(filePath);
             }
         }
 
-        Console.WriteLine($"[RoslynApi] Applied changes to {changedDocuments} document(s) in {changedProjects} project(s)");
+        Console.Error.WriteLine($"[RoslynApi] Applied changes to {changedDocuments} document(s) in {changedProjects} project(s)");
 
         // Update our current solution
         _solution = newSolution;
@@ -197,14 +197,14 @@ public class RoslynApiClient : IAsyncDisposable
     {
         EnsureSolutionLoaded();
 
-        Console.WriteLine($"[RoslynApi] Finding references to '{symbol.Name}'...");
+        Console.Error.WriteLine($"[RoslynApi] Finding references to '{symbol.Name}'...");
         var references = await SymbolFinder.FindReferencesAsync(symbol, _solution!);
 
         var locations = references
             .SelectMany(r => r.Locations)
             .ToList();
 
-        Console.WriteLine($"[RoslynApi] Found {locations.Count} reference(s)");
+        Console.Error.WriteLine($"[RoslynApi] Found {locations.Count} reference(s)");
         return locations;
     }
 

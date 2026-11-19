@@ -100,6 +100,8 @@ public class RenameCommand : ICommandHandler
         bool preview,
         bool renameFile)
     {
+        RenameGuard.ValidateNewName(newName);
+
         await context.GetSolutionAsync();
 
         // Parse type filter
@@ -191,20 +193,22 @@ public class RenameCommand : ICommandHandler
         // Apply changes if not in preview mode
         if (!preview)
         {
+            // Validate every file move up front so a bad one fails before anything is written.
+            var fileMoves = fileChanges
+                .Where(c => c.NewFileName != null)
+                .Select(c => (From: c.File, To: RenameGuard.GetSafeRenamedPath(c.File, c.NewFileName!)))
+                .ToList();
+
             context.LogVerbose("Applying changes to disk...");
             await context.Client.ApplySolutionChangesAsync(newSolution);
 
             // Handle file renames
-            foreach (var change in fileChanges.Where(c => c.NewFileName != null))
+            foreach (var (from, to) in fileMoves)
             {
-                var oldPath = change.File;
-                var directory = Path.GetDirectoryName(oldPath) ?? "";
-                var newPath = Path.Combine(directory, change.NewFileName!);
-
-                if (File.Exists(oldPath))
+                if (File.Exists(from))
                 {
-                    File.Move(oldPath, newPath);
-                    context.LogVerbose($"Renamed file: {change.NewFileName}");
+                    File.Move(from, to);
+                    context.LogVerbose($"Renamed file: {Path.GetFileName(to)}");
                 }
             }
         }
