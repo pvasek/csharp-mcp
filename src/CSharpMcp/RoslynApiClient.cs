@@ -55,8 +55,9 @@ public class RoslynApiClient : IAsyncDisposable
             var compilation = await project.GetCompilationAsync();
             if (compilation == null) continue;
 
-            // Get all type symbols from the compilation
-            var symbols = GetAllSymbolsFromNamespace(compilation.GlobalNamespace);
+            // Use the assembly's own namespace: Compilation.GlobalNamespace also merges in
+            // every referenced assembly, which duplicated types once per referencing project.
+            var symbols = GetAllSymbolsFromNamespace(compilation.Assembly.GlobalNamespace);
             allSymbols.AddRange(symbols);
         }
 
