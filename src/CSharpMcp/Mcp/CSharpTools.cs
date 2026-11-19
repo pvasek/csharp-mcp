@@ -126,6 +126,15 @@ public class CSharpTools
         [Description("Show changes without applying them")] bool preview = false,
         [Description("Also rename the file if renaming a type")] bool renameFile = false)
     {
+        try
+        {
+            RenameGuard.ValidateNewName(newName);
+        }
+        catch (ArgumentException ex)
+        {
+            return JsonSerializer.Serialize(new { error = ex.Message }, _jsonOptions);
+        }
+
         var originalSolution = await _context.GetSolutionAsync();
 
         SymbolKind? kind = ParseSymbolKind(type);
@@ -188,17 +197,27 @@ public class CSharpTools
 
         if (!preview)
         {
+            // Validate every file move up front so a bad one fails before anything is written.
+            var fileMoves = new List<(string From, string To)>();
+            try
+            {
+                foreach (var change in fileChanges.Where(c => c.NewFileName != null))
+                {
+                    fileMoves.Add((change.File, RenameGuard.GetSafeRenamedPath(change.File, change.NewFileName!)));
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                return JsonSerializer.Serialize(new { error = ex.Message }, _jsonOptions);
+            }
+
             await _context.Client.ApplySolutionChangesAsync(newSolution);
 
-            foreach (var change in fileChanges.Where(c => c.NewFileName != null))
+            foreach (var (from, to) in fileMoves)
             {
-                var oldPath = change.File;
-                var directory = Path.GetDirectoryName(oldPath) ?? "";
-                var newPath = Path.Combine(directory, change.NewFileName!);
-
-                if (File.Exists(oldPath))
+                if (File.Exists(from))
                 {
-                    File.Move(oldPath, newPath);
+                    File.Move(from, to);
                 }
             }
         }
