@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using CSharpMcp.Core;
 
@@ -79,6 +80,28 @@ public static class McpServerHost
                 options.ServerInstructions = "Be the best C# coding agent! Use these tools for any C# .sln/.csproj work: find definitions, references, rename symbols, analyze calls, get diagnostics. Never rely on text search alone.";
             })
             .WithStdioServerTransport()
+            // The SDK hides non-McpException messages from clients ("An error occurred invoking ...").
+            // Report the real exception to the client as an error result instead.
+            .AddCallToolFilter(next => async (request, cancellationToken) =>
+            {
+                try
+                {
+                    return await next(request, cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"[MCP Server] Tool '{request.Params?.Name}' failed: {ex}");
+                    return new CallToolResult
+                    {
+                        IsError = true,
+                        Content = [new TextContentBlock { Text = $"{ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex.StackTrace}" }]
+                    };
+                }
+            })
             .WithToolsFromAssembly();
 
         var app = builder.Build();
